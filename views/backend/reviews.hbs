@@ -1,0 +1,61 @@
+{{>jumbotron}}
+
+<ul class="nav nav-mytabs" id="myTab" role="tablist">
+  <li class="nav-item">
+      <a class="nav-link active" id="reviews-tab" data-toggle="tab" href="#reviews" role="tab" aria-controls="reviews" aria-selected="true">Reviews</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" id="comments-tab" data-toggle="tab" href="#comments" role="tab" aria-controls="comments" aria-selected="false">Comments</a>
+    </li>
+</ul>
+
+<div class="tab-content mytab-content" id="myTabContent">
+  <div class="tab-pane fade show active" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+    <!-- REVIEW CONTENTS -->
+      <table class="table table-hover table-light mb-5">
+      <thead class="thead-green">
+          <tr class="text-center">
+              <th scope="col">Student ID</th>
+              <th scope="col">Reviewer</th>
+              <th scope="col">Professor</th>
+              <th scope="col">No. of Comments</th>
+              <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+          {{#each review}}
+              <tr class="text-center">
+                  <td>{{this.studentId}}</td>
+                  <td>{{this.studentRef.studentName}}</td>
+                <td>{{this.profRef.profName}}</td>
+                  <td>{{this.count}}</td>
+                  <td><a class="btn btn-primary btn-sm text-white" href="/reviews/{{this._id}}">Go to Review</a></td>
+              </tr>
+            {{/each}}
+      </tbody>
+    </table>
+  </div>
+  <div class="tab-pane fade" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+    <!-- COMMENT CONTENTS -->
+      <table class="table table-hover table-light mb-5">
+      <thead class="thead-green">
+          <tr class="text-center">
+              <th scope="col">Student ID</th>
+              <th scope="col">Commentor</th>
+              <th scope="col">Comment</th>
+              <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+          {{#each comment}}
+              <tr class="text-center">
+                  <td>{{this.studentRef.studentId}}</td>
+                  <td>{{this.studentRef.studentName}}</td>
+                  <td><span class="d-inline-block text-truncate" style="max-width: 400px;">{{this.commentContent}}</span></td>
+                  <td><a class="btn btn-primary btn-sm text-white" href="/reviews/{{this._id}}">Go to Review</a></td>
+              </tr>
+            {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
