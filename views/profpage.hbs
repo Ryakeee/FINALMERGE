@@ -1,0 +1,66 @@
+{{>jumbotron}}
+
+<div class="row mt-sm-4 mt-md-0">
+	<div class="col-sm-12 col-md-8">
+    	<table class="table table-hover table-light mb-5">
+			<thead class="thead-green">
+			    <tr>
+			       	<th scope="col"></th>
+			       	<th scope="col">Review</th>
+			       	<th scope="col">Course</th>
+			       	<th scope="col">Reviewer</th>
+			       	<th scope="col" class="text-center">Action</th>
+		    	</tr>
+			</thead>
+		    <tbody>
+			    {{#each reviews}}
+					<tr>
+				      	<th scope="row"></th>
+				  	    <td>
+				  	  		<span class="d-inline-block text-truncate" style="max-width: 200px;">{{this.reviewContent}}</span>
+				  	    </td>
+				      	<td>{{this.profCourse}}</td>
+				       	<td>{{this.studentRef.studentName}}</td>
+				       	<td class="text-center"><a class="btn btn-primary btn-sm text-white" href="/reviews/{{this._id}}">Go to Review</a></td>
+			    	</tr>
+		      	{{/each}}
+			</tbody>
+		</table>
+    </div>
+
+    <div class="col-sm-12 col-md-4">
+    	<div class="card mb-4">
+    		<div class="card-header bg-gradient font-weight-bold">Submit a Quick Review</div>
+	      	<div class="card-body">
+		      	<form>
+		      		<!-- did these lang cause idk how to pull db from script.js-->
+		      		<p id="revProfRef" name="revProfRef" hidden>{{professor._id}}</p> 
+		      		<p id="revStudentId" name="revStudentId" hidden>11712074</p>
+		      		<p id="revStudentRef" name="revStudentRef" hidden>5e934beba7d465709075b099</p>
+		      		<p id="revProfNum" name="revProfNum" hidden>{{professor.profNumber}}</p>
+		      		<!-- end -->
+		        	<div class="form-group row">
+			            <label for="revProfName" class="col-sm-4 col-form-label">Professor</label>
+			            <select class="custom-select col-sm-7" disabled id="revProfName" name="revProfName">
+			              <option selected>{{professor.profName}}</option>
+			        	</select>
+			        </div>
+			        <div class="form-group row">
+			            <label for="revProfCourse" class="col-sm-4 col-form-label">Course</label>
+			            <select class="custom-select col-sm-7" disabled id="revProfCourse" name="revCourse">
+			              <option selected>{{professor.profCourse}}</option>
+			        	</select>
+			        </div>
+		          	<div class="form-group row">
+			            <label for="revContent" class="col-sm-4 col-form-label">Review</label>
+			            <textarea class="form-control col-sm-7" id="revContent" name="revContent" rows="3"></textarea>
+			        </div>
+			        <div class="text-center">
+			        	<button type="button" class="btn btn-primary mt-0 mb-2 text-center" id="addReview" name="addReview">Post Review</button>
+			    	</div>
+		    	</form>
+		    	<p id="msg" class="text-danger mb-0 mt-2 text-center"></p>
+	    	</div>
+		</div>
+	</div>
+</div>

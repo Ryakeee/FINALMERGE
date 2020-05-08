@@ -1,0 +1,19 @@
+{{>jumbotron}}
+
+{{#if data}}
+  <div class="row">
+    {{#each data}}
+      <div class="col-sm-12 col-md-4">
+        <div class="card mb-4">
+          <div class="card-body text-center">
+            <img src="{{this.logo}}" width="100" height="100" class="rounded-10 d-inline-block align-top mb-1" alt="{{this.longName}}">
+            <h5 class="card-title">{{this.longName}}</h5>
+            <a href="/colleges/{{this.shortName}}" class="card-link">View {{this.shortName}} page</a>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+{{else}}
+  <p>No colleges yet</p>
+{{/if}}

@@ -1,0 +1,118 @@
+{{>jumbotron}}
+
+<div class="row">
+  <!-- TODO: Transform repetitve code below into an EACH -->
+  <div class="col">
+    <div class="card mb-4 shadow-lg bg-gradient lighter-95">
+      <div class="card-body text-center pt-2 pb-0">
+        <h3>Featured Professors</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{#if data}}
+  <div class="row">
+    {{#each data}}
+      <div class="col-sm-12 col-md-4">
+        <div class="card mb-4">
+          <div class="card-body text-center">
+            <img src="/assets/{{gender}}_prof.png" width="100" height="100" class="d-inline-block align-top mb-1" alt="{{profName}}">
+            <h5 class="card-title">{{profName}}</h5>
+            <p class="card-text">A Lasallian professor teaching {{profCourse}} from the 
+              {{#ifCond college "COB"}}
+              College of Business.
+              {{/ifCond}}{{#ifCond college "CLA"}}
+              College of Liberal Arts.
+              {{/ifCond}}{{#ifCond college "COE"}}
+              College of Engineering.
+              {{/ifCond}}{{#ifCond college "COS"}}
+              College of Science.
+              {{/ifCond}}{{#ifCond college "CCS"}}
+              College of Computer Studies.
+              {{/ifCond}}{{#ifCond college "CED"}}
+              College of Education.
+              {{/ifCond}}{{#ifCond college "SOE"}}
+              School of Economics.
+              {{/ifCond}}</p>
+            <a href="/professors/{{profNumber}}" class="card-link">View profile</a>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+{{else}}
+  <p>No professors yet</p>
+{{/if}}
+
+<div class="row mt-sm-4 mt-md-0">
+
+  <div class="col-sm-12 col-md-8">
+    <h3>Most Recent Reviews</h3>
+    <table class="table table-hover table-light mb-5">
+    <thead class="thead-green">
+      <tr>
+        <th scope="col"></th>
+        <th scope="col">Professor</th>
+        <th scope="col">Course</th>
+        <th scope="col">Reviewer</th>
+        <th scope="col" class="text-center">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each review}}
+        <tr>
+          <th scope="row"></th>
+          <td>{{this.profRef.profName}}</td>
+          <td>{{this.profCourse}}</td>
+          <td>{{this.studentRef.studentName}}</td>
+          <td class="text-center"><a class="btn btn-primary btn-sm text-white" href="/reviews/{{this._id}}">Go to Review</a></td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  </div>
+
+  <div class="col-sm-12 col-md-4">
+    <h3 class="text-center" id="quickReview">Quick Review</h3>
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="text-center">
+          <img src="/assets/logo_box_green.jpg" width="100" class="rounded-10 d-inline-block align-top mt-2 mb-3" alt="DLSU Community Forum">
+        </div>
+
+        <form>
+          <div class="form-group row">
+            <label for="quickCollege" class="col-sm-4 col-form-label">College</label>
+            <select class="custom-select col-sm-7" id="quickCollege" name="quickCollege">
+              <option hidden disabled selected value>Choose...</option>
+              {{#each colleges}}
+              <option>{{this.shortName}}</option>
+              {{/each}}
+            </select>
+          </div>
+          <div class="form-group row">
+            <label for="quickCourse" class="col-sm-4 col-form-label">Course</label>
+            <select class="custom-select col-sm-7" id="quickCourse" name="quickCourse">
+              <option hidden disabled selected value>Choose...</option>
+            </select>
+          </div>
+          <div class="form-group row">
+            <label for="quickProf" class="col-sm-4 col-form-label">Professor</label>
+            <select class="custom-select col-sm-7" id="quickProf" name="quickProf">
+              <option hidden disabled selected value>Choose...</option>
+            </select>
+          </div>
+          <div class="form-group row">
+            <label for="quickRev" class="col-sm-4 col-form-label">Review</label>
+            <textarea class="form-control col-sm-7" id="exampleFormControlTextarea1" rows="3"></textarea>
+          </div>
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary mt-0 mb-2">Post Review</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>

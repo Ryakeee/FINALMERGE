@@ -1,0 +1,47 @@
+{{>jumbotron}}
+
+<div class="row mt-sm-4 mt-md-0">
+
+  <div class="col-sm-12 col-md-8">
+  	{{#if college.founderBio}}
+	  	<h3>Brother Andrew Gonzales</h3>
+	    <h4 class="lead">A Visionary and Educator</h4>
+	    {{{college.founderBio}}}
+  	{{/if}}
+	<h3>Vision Mission</h3>
+	{{{college.visionMission}}}
+	{{#if college.coreValues}}
+	    <h3>Core Values</h3>
+	    {{{college.coreValues}}}
+	{{/if}}
+	{{#if college.philosophy}}
+		<h3>Philosophy</h3>
+		{{{college.philosophy}}}
+	{{/if}}
+	{{#if college.goals}}
+		<h3>Goals</h3>
+		{{{college.goals}}}
+	{{/if}}
+	{{#if college.icon}}
+		<h3>The Icon</h3>
+		{{{college.icon}}}
+	{{/if}}
+    <h3>Contact us</h3>
+    <p>Tel. No: {{college.contactUs.telNum}}<br>
+    Fax No: {{college.contactUs.faxNum}}<br>
+    Email: {{college.contactUs.email}}</p>
+  </div>
+
+  <div class="col-sm-12 col-md-4">
+    <div class="card mb-4 shadow-lg">
+      <div class="card-body text-center">
+        <h3 class="text-center mb-4">About {{college.shortName}}</h3>
+        <img src="{{college.logo}}" width="200"class="rounded-10 d-inline-block align-top mb-4" alt="{{college.longName}}">
+        {{#each college.aboutUs}}
+        	<p class="text-justify">{{this}}</p>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+
+</div>

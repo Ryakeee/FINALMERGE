@@ -1,0 +1,41 @@
+{{>jumbotron}}
+
+{{#if professor}}
+  <!-- Looping through lists -->
+  <div class="row">
+  {{#each professor}}
+    <!-- TODO: Transform repetitve code below into an EACH -->
+    <div class="col-sm-12 col-md-4">
+      <div class="card mb-4">
+        <div class="card-body text-center">
+          {{#ifCond this.gender "Male"}}
+          <img src="../../assets/male_prof.png" width="100" height="100" class="rounded-10 d-inline-block align-top mb-1" alt="{{this.profName}}">
+          {{else}}
+          <img src="../../assets/female_prof.png" width="100" height="100" class="rounded-10 d-inline-block align-top mb-1" alt="{{this.profName}}">
+          {{/ifCond}}
+          
+          <h5 class="card-title">{{this.profName}}</h5>
+          {{#ifCond this.college "COB"}}
+          <p>College of Business<br>
+          {{/ifCond}}{{#ifCond this.college "CLA"}}
+          <p>College of Liberal Arts<br>
+          {{/ifCond}}{{#ifCond this.college "COE"}}
+          <p>College of Engineering<br>
+          {{/ifCond}}{{#ifCond this.college "COS"}}
+          <p>College of Science<br>
+          {{/ifCond}}{{#ifCond this.college "CCS"}}
+          <p>College of Computer Studies<br>
+          {{/ifCond}}{{#ifCond this.college "CED"}}
+          <p>College of Education<br>
+          {{/ifCond}}{{#ifCond this.college "SOE"}}
+          <p>School of Economics<br>
+          {{/ifCond}}{{this.profCourse}}</p>
+          <a href="/professors/{{this.profNumber}}" class="card-link">View Profile</a>
+        </div>
+      </div>
+    </div>
+    {{/each}}
+  </div>
+{{else}}
+  <p>No professors yet</p>
+{{/if}}
