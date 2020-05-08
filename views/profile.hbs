@@ -1,0 +1,58 @@
+{{>jumbotron}}
+
+<div class="row mt-sm-4 mt-md-0">
+	<div class="col-sm-12 col-md-8">
+    	<table class="table table-hover table-light mb-5">
+			<thead class="thead-green">
+			    <tr>
+			       	<th scope="col"></th>
+			       	<th scope="col">Review</th>
+			       	<th scope="col">Course</th>
+			       	<th scope="col">Reviewer</th>
+			       	<th scope="col" class="text-center">Action</th>
+		    	</tr>
+			</thead>
+		    <tbody>
+			    {{#each reviews}}
+					<tr>
+				      	<th scope="row"></th>
+				  	    <td>
+				  	  		<span class="d-inline-block text-truncate" style="max-width: 200px;">{{this.reviewContent}}</span>
+				  	    </td>
+				      	<td>{{this.profCourse}}</td>
+				       	<td>{{this.studentRef.studentName}}</td>
+				       	<td class="text-center"><a class="btn btn-primary btn-sm text-white" href="/reviews/{{this._id}}">Go to Review</a></td>
+			    	</tr>
+		      	{{/each}}
+			</tbody>
+		</table>
+    </div>
+
+    <div class="col-sm-12 col-md-4">
+    	<div class="card mb-4">
+    		<div class="card-header bg-gradient font-weight-bold">
+    			<!-- REPLACE WITH ACTUAL USER ID -->
+    			ID Number: 11712074
+  			</div>
+	      	<div class="card-body">
+		      	<form>
+		        	<div class="form-group row">
+		            	<label for="changePassword" class="col-sm-4 col-form-label">Current Password</label>
+		            	<input type="password" class="form-control col-sm-7 mt-2" placeholder="Current Password"> 
+		        	</div>
+		          	<div class="form-group row">
+		          		<label for="changePassword" class="col-sm-4 col-form-label">New Password</label>
+		          		<input type="password" class="form-control col-sm-7 mt-2" placeholder="New Password"> 
+		       	  	</div>
+		          	<div class="form-group row">
+		            	<label for="changePassword" class="col-sm-4 col-form-label">Confirm Password</label>
+		            	<input type="password" class="form-control col-sm-7 mt-2" placeholder="Confirm Password"> 
+		          	</div>
+		          	<div class="text-center">
+		            	<button type="submit" class="btn btn-primary mt-0 mb-2">Change Password</button>
+		          	</div>
+		    	</form>
+	    	</div>
+		</div>
+	</div>
+</div>
