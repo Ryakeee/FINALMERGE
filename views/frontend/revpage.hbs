@@ -14,38 +14,23 @@
 	    	</div> 	
 		</div>
 
-		<div class="card-header bg-gradient font-weight-bold" >
-    			Comments
-  		</div>
-  		<div class="card mb-4"  style="max-height: 50%; min-height=10%; overflow-y: auto">
-			<div class="card-body">
-				{{#if comments}}
-					{{#each comments}}	
-					<p class="mb-0" align ="left">{{this.commentContent}}</p>
-					<p align="left">-<cite title="Source Title">{{this.studentRef.studentName}}</cite></p>
-			    	{{/each}}
-
-			    	<!-- testers since there are not enough documents in 'review' collections
-			    	{{#each comments}}	
+		<div class="card mb-4">
+			<div class="card-header bg-gradient font-weight-bold" >
+	    			Comments
+	  		</div>
+	  		<div class="card mb-4"  style="max-height: 50%; min-height=10%; overflow-y: auto">
+				<div class="card-body">
+					{{#if comments}}
+						{{#each comments}}	
 						<p class="mb-0" align ="left">{{this.commentContent}}</p>
 						<p align="left">-<cite title="Source Title">{{this.studentRef.studentName}}</cite></p>
-			    	{{/each}}
-	
-			    	{{#each comments}}	
-						<p class="mb-0" align ="left">{{this.commentContent}}</p>
-						<p align="left">-<cite title="Source Title">{{this.studentRef.studentName}}</cite></p>
-			    	{{/each}}
-
-			    	{{#each comments}}	
-						<p class="mb-0" align ="left">{{this.commentContent}}</p>
-						<p align="left">-<cite title="Source Title">{{this.studentRef.studentName}}</cite></p>
-			    	{{/each}}
-			    	-->
-				{{else}}
-					<p></p>
-					<p align="center"><cite title="Source Title">No comments yet</cite></p>
-				{{/if}}
-			</div>	  
+				    	{{/each}}
+					{{else}}
+						<p></p>
+						<p align="center"><cite title="Source Title">No comments yet</cite></p>
+					{{/if}}
+				</div>	  
+			</div>
 		</div>
     </div>
 
