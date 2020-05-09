@@ -8,6 +8,7 @@ var app = express();
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var session = require('express-session');
+var bcrypt = require('bcrypt');
 
 //Import Models
 const collegeModel = require('./models/college');
@@ -87,7 +88,8 @@ app.get('/', function(req, res){
 			});
 		});
  	} else{
- 		res.redirect('/login')
+ 		res.redirect('/login');
+ 		//console.log( bcrypt.hashSync('p@ssw0rd', 10) );
  	};
 });
 
@@ -307,22 +309,42 @@ app.get('/profile', function(req, res){
 	if (req.session.loggedin){
 		reviewModel.find({studentId: req.session.idNum}).populate('profRef').populate('studentRef').sort({_id:-1}).exec(function(err,result) {
 		 	var reviews = [];
+		 	var comments = [];
 
 			result.forEach(function(document){
 				reviews.push(document.toObject());
 			});
 
-			res.render('frontend/profile',{
-				session: req.session,
-				reviews: reviews,
-				title: 'Profile',
-				session: req.session,
-				jumbotronImage: '/assets/headers/user_header.jpg',
-				jumbotronHeader: 'Hello ' + req.session.nickname + ',',
-				jumbotronMessage: "This page shows your most recent contribution to the DLSU Community Forum. You may also change your password through the form below.",
-				jumbotronBtn: 'Back to Homepage',
-				jumbotronLink: '/'
+			var current_id = reviews[0].studentRef._id;
+
+			commentModel.find({studentRef: current_id}).populate({path: 'reviewRef', model: 'review', populate: { path: 'profRef', model: 'professor'}}).populate('studentRef').sort({_id:-1}).exec(function(err, docs) {
+
+				//console.log(docs[0].reviewRef.profRef.toObject());
+
+				var comment;
+
+				docs.forEach(function(document){
+					comment = document.toObject();
+					comment['profDetails'] = document.reviewRef.profRef.toObject();
+					comments.push(comment);
+				})
+
+				//console.log(comments);
+
+				res.render('frontend/profile',{
+					session: req.session,
+					reviews: reviews,
+					comments: comments,
+					title: 'Profile',
+					session: req.session,
+					jumbotronImage: '/assets/headers/user_header.jpg',
+					jumbotronHeader: 'Hello ' + req.session.nickname + ',',
+					jumbotronMessage: "This page shows your most recent contribution to the DLSU Community Forum. You may also change your password through the form below.",
+					jumbotronBtn: 'Back to Homepage',
+					jumbotronLink: '/'
+				});
 			});
+
 		});
 	} else{
 		res.redirect('/login');
@@ -602,7 +624,11 @@ app.post('/auth', function(req,res) {
 		}
 		if (userQuery){
 			console.log('User found!');
-			if (userQuery.password === user.password) {
+
+			//console.log("password:" + user.password);
+			//console.log("hash: " + userQuery);
+
+			if(bcrypt.compareSync(user.password, userQuery.password)) {
 				req.session.nickname = userQuery.studentName.substr(0, userQuery.studentName.indexOf(' '));
 				req.session.fullname = userQuery.studentName;
 				req.session.studentRef = userQuery._id;
@@ -680,7 +706,7 @@ app.post('/addReview', function(req, res) {
 		    	result = { success: false, message: "Error in adding review!" }
 		    	res.send(result);
 		    } else {
-		    	console.log(review);
+		    	//console.log(review);
 		    	result = { success: true, message: "Successfully added review!" }
 		    	res.send(result);
 		    }
@@ -706,7 +732,7 @@ app.post('/addComment', function(req, res) {
 		res.send(result);
 	  } else {
 		console.log("Successfully added comment!");
-		console.log(comment);
+		//console.log(comment);
   
 		result = { success: true, message: "Comment posted!" }
   
@@ -715,7 +741,6 @@ app.post('/addComment', function(req, res) {
   
 	});
   });
-
 
 app.post('/savePost', function(req, res) {
 
@@ -737,13 +762,93 @@ app.post('/savePost', function(req, res) {
 			doc.save();
 
 			console.log("Successfully saved review!");
-			console.log(doc);
+			//console.log(doc);
   
 			result = { success: true, message: "Review saved!" }
 			res.send(result);
 		}
 	});
   });
+
+app.post('/saveComment', function(req, res) {
+
+	var id = req.body.id;
+	var content = req.body.content;
+
+	commentModel.findOne({_id: id}, function(err, doc){
+		var result;
+
+		if(err){
+			console.log(err.errors);
+  
+			result = { success: false, message: "Comment was not successfully saved!" }
+			res.send(result);
+		}
+		else{
+			doc.commentContent = content;
+			doc.save();
+
+			console.log("Successfully saved comment!");
+			//console.log(doc);
+  
+			result = { success: true, message: "Comment saved!" }
+			res.send(result);
+		}
+	});
+  });
+
+app.post('/deletePost', function(req, res) {
+
+	var id = req.body.id;
+
+	commentModel.deleteMany({ reviewRef: id}, function (err) {
+  		if(err){
+  			console.log(err);
+  		}
+  		else{
+  			reviewModel.deleteOne({ _id: id }, function (err) {
+			 
+				if(err){
+					console.log(err.errors);
+	  
+					result = { success: false, message: "Review was not successfully deleted!" }
+					res.send(result);
+				} else {
+					console.log("Successfully deleted review!");
+			
+					result = { success: true, message: "Review deleted!" }
+					res.send(result);
+				}
+			});
+  		}
+	});
+  });
+
+app.post('/deleteComment', function (req, res) {
+
+	var id = req.body.id;
+
+	commentModel.deleteOne({ _id: id }, function (err) {
+
+		if (err) {
+			console.log(err.errors);
+
+			result = {
+				success: false,
+				message: "Comment was not successfully deleted!"
+			}
+			res.send(result);
+		} else {
+			console.log("Successfully deleted comment!");
+
+			result = {
+				success: true,
+				message: "Comment deleted!"
+			}
+			res.send(result);
+		}
+	});
+});
 
 //HTTP Status Routes
 app.use(function (req, res, next) {
