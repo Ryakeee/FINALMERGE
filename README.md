@@ -18,6 +18,9 @@ This project is still **under development** and will be constantly updated once 
 4. Run `node index.js`.
 5. You're ready to go!
 
+# Heroku Link
+- https://dlsu-community-forum-s14group1.herokuapp.com/
+
 
 # UML
 
@@ -32,7 +35,7 @@ The web application is anchored towards four key indicators: Security, Simplicit
 
 - Mandatory user registration.
 - Community administrators, moderators, and contributors.
-- Anti-discriminatory community guidelines (no cursing, etc). [^1]
+- Anti-discriminatory community guidelines (no cursing, etc). 
 
 ## Security 
 
@@ -42,7 +45,7 @@ The web application is anchored towards four key indicators: Security, Simplicit
 -   Convenient changing of password.
 -   Convenient post sectioning (college, course, professor).
 -   Convenient post and comment management.
--   Convenient prof searching and filtering. [^1]
+-   Convenient prof searching and filtering.
 -   College sorted professors.
 
 ## Reliability
@@ -72,7 +75,7 @@ The web application is anchored towards four key indicators: Security, Simplicit
 - See All Professors
   - A user can view all professors with the following information such as name, courses, and college.
 
-- Search Professors/Subjects [^1]
+- Search Professors/Subjects 
   - A user can search for a certain professor by their name and/or subject that will show the matched post subject forum post and/or professor information. 
 
 - See Most Recent Reviews
@@ -96,6 +99,3 @@ The web application is anchored towards four key indicators: Security, Simplicit
 - Delete Comment
   - A user can delete his/her own comment.
 
-
-
-[^1]: Feature will be implemented on MP Phase 3 submission.
