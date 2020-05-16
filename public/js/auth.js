@@ -29,22 +29,49 @@ window.addEventListener('load', () => {
             $('#regPass1').removeClass('border-danger');
             $('#regPass2').removeClass('border-danger');
             newUser.password = regPass1;
+            $('#securityModal').modal('show');
+                $('#chooseQuestion').change(function() {
+                    var chosen = $(this).children("option").filter(":selected").val();
+                    $('#submitSecBtn').click(function(){
+                        var answer = $('#securityAnswer').val();
+                        console.log(chosen);
+                        console.log(answer);
+                        if (answer === ''){
+                            $('#msg').addClass('text-danger');
+                            $('#msg').removeClass('text-success');
+                            $('#msg').text('Please enter necessary information!');
+                        }
+                        else {
+                            var security = {
+                                idNum: regId,
+                                securityQ: chosen,
+                                securityA: answer
+                            } 
+                            $.post('/addFallback', security, function(data, status){
+                                console.log(security)
+                                if(data.success){
+                                    $('#securityModal').modal('hide');
+                                }
+                            });
 
-            $.post('/addUser', newUser, function(data, status) {
-                if (data.success) {
-                    $('#msg1').addClass('text-success');
-                    $('#msg1').removeClass('text-danger');
-                    $('#msg1').text(data.message);
-                    $("#regName").val('');
-                    $("#regId").val('');
-                    $("#regPass1").val('');
-                    $("#regPass2").val('');
-                } else {
-                    $('#msg1').addClass('text-danger');
-                    $('#msg1').removeClass('text-success');
-                    $('#msg1').text(data.message);
-                }
-            });
+                            $.post('/addUser', newUser, function(data, status) {
+                                if (data.success) {
+                                    $('#msg1').addClass('text-success');
+                                    $('#msg1').removeClass('text-danger');
+                                    $('#msg1').text(data.message);
+                                    $("#regName").val('');
+                                    $("#regId").val('');
+                                    $("#regPass1").val('');
+                                    $("#regPass2").val('');
+                                } else {
+                                    $('#msg1').addClass('text-danger');
+                                    $('#msg1').removeClass('text-success');
+                                    $('#msg1').text(data.message);
+                                }
+                            });
+                        }
+                    });
+                });
         } else{
             $('#regPass1').addClass('border border-danger');
             $('#regPass2').addClass('border border-danger');
@@ -105,6 +132,76 @@ window.addEventListener('load', () => {
                     $('#msg2').text(data.message);
                 }
             });
+        }
+    });
+    
+//forgot password
+
+    $('#forgotSubmitBtn').click(function(){
+        var id = $('#idNum').val();
+        $.get('/getSecQuestion', id, function (data, status) {
+    
+            if(data === "No User Found!"){
+                alert(data);
+            }
+            else
+            {
+                $('#forgotModal').modal('hide');
+                $('#verifyModal').modal('show');
+                var verifyAnswer = $('#securityAns').val();
+                document.getElementById('secQuestion').value = data.question;
+            }
+        });
+        
+    });
+
+    $('#submitVerifBtn').click(function(){
+        var security = {
+            id: $('#idNum').val(),
+            answer: $('#securityAns').val()
+        };
+
+        //alert(security.id + " " + security.answer);
+
+        $.get('/verifySecAnswer', security, function (data, status) {
+            if(data === "Answers mismatch!"){   
+                alert("Wrong security answer!");
+                $('#vmsg').text('Answers Mismatched');
+                document.getElementById('securityAns').value = "";
+                document.getElementById('idNum').value = "";
+            }
+            else
+            {
+                $('#verifyModal').modal('hide');
+                $('#newPasswordModal').modal('show');
+
+            }
+        });
+    });
+
+     $('#newPasswordBtn').click(function(){
+
+        var pass1 = $('#pass1').val();
+        var pass2 = $('#pass2').val();
+
+       // alert(pass1 + " " + pass2);
+
+        if(pass1 === pass2){
+
+            var security = {
+                id: $('#idNum').val(),
+                password: pass1
+            };
+            $.post('/setNewPassword', security, function (data, status) {
+                $('#nmsg').text('Password changed!');
+                var delay = 2000; 
+                setTimeout(function(){ window.location = '/'; }, delay);
+            });
+        }
+        else{
+            $('#nmsg').text('Passwords Mismatched');
+            $('#pass1').val() = "";
+            $('#pass2').val() = "";
         }
     });
 });

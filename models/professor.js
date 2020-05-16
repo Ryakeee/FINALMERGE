@@ -18,11 +18,11 @@ var connection = mongoose.createConnection(databaseURL, options);
 autoIncrement.initialize(connection);
 
 var professorSchema = new Schema({
-	profNumber: {type: Int32},
-	college: {type: String},
-	gender: {type: String},
-	profName: {type: String},
-	profCourse: {type: String}
+	profNumber: {type: Int32, required: true},
+	college: {type: String, required: true},
+	gender: {type: String, required: true},
+	profName: {type: String, required: true},
+	profCourse: {type: String, required: true}
 });
 
 professorSchema.plugin(autoIncrement.plugin, {

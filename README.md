@@ -41,7 +41,7 @@ The web application is anchored towards four key indicators: Security, Simplicit
 -   Convenient log in - log out navigation.
 -   Convenient changing of password.
 -   Convenient post sectioning (college, course, professor).
--   Convenient post and comment management. [^1]
+-   Convenient post and comment management.
 -   Convenient prof searching and filtering. [^1]
 -   College sorted professors.
 
@@ -81,19 +81,19 @@ The web application is anchored towards four key indicators: Security, Simplicit
 - Create Post
   - A user can post a review about a certain professor in the selected college and course chosen.
 
-- Edit Post [^1]
+- Edit Post
   - A user can edit a post he/she posted.
 
-- Delete Post [^1]
+- Delete Post
   - A user can delete posts he/she had already posted.
 
-- Comment [^1]
+- Comment
   - A user can comment on a post posted by other users and/or his/her own post.
 
-- Edit Comment [^1]
+- Edit Comment
   - A user can edit a comment he/she posted.
 
-- Delete Comment [^1]
+- Delete Comment
   - A user can delete his/her own comment.
 
 

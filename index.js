@@ -8,20 +8,20 @@ var app = express();
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var session = require('express-session');
-var bcrypt = require('bcrypt'); // npm install bcrypt
+var bcrypt = require('bcrypt');
 var fileUpload = require('express-fileupload'); //npm i express-fileupload
-
 
 //Import Models
 const collegeModel = require('./models/college');
+const commentModel = require('./models/comment');
 const professorModel = require('./models/professor');
 const userModel = require('./models/user');
 const reviewModel = require('./models/review');
-const commentModel = require('./models/comment');
+const fallbackModel = require('./models/fallback');
 
 //Environments Configuration
 app.set('view engine', 'hbs');
-app.set('port', (process.env.PORT || 3000));
+app.set('port', (process.env.PORT || 9090));
 app.engine('hbs',hbs({
 	extname: 'hbs',
 	defaultView: 'main',
@@ -90,7 +90,13 @@ app.get('/', function(req, res){
 			});
 		});
  	} else{
- 		res.redirect('/login');
+ 		res.redirect('/login')
+
+// 		console.log( "123: " + bcrypt.hashSync("123", 10) );
+ //		console.log( "bucky: " + bcrypt.hashSync("bucky", 10) );
+ 	//	console.log( "gomez: " + bcrypt.hashSync("gomez", 10) );
+ 	//	console.log( "456: " + bcrypt.hashSync("456", 10) );
+ 	//	console.log( "waku: " + bcrypt.hashSync("waku", 10) );
  	};
 });
 
@@ -263,79 +269,102 @@ app.get('/professors/:id', function(req, res){
 	}
 });
 
-app.get('/reviews/:id', function(req,res){
-	const link = req.params.id;
+app.get('/reviews', async function(req,res){
+	if (req.session.loggedin){
+		const reviewRes = await reviewModel.find({}).populate('profRef').populate('studentRef').sort({_id:-1}).lean().exec();
+		const resultPromises = reviewRes.map(async review => {
+    		const commentCount = await commentModel.countDocuments({ reviewRef: review._id }).populate('reviewRef').populate('studentRef');
+			review.count = commentCount;
+			return review;
+  		});
+		const reviewObject = await Promise.all(resultPromises);
 
-	reviewModel.findOne({_id: link}).populate('profRef').populate('studentRef').exec(function(err, review){
-
-		if(review === null){
-			res.render('frontend/error',{
-				title: '404',
-	  			status: '404'
+		collegeModel.find({}).exec(function(err, col){
+			var colleges = [];
+			col.forEach(function(document){
+				colleges.push(document.toObject());
 			});
-		}
-		else{
-			collegeModel.findOne({shortName: review.profRef.college}, function(err,college) {
-				commentModel.find({reviewRef: review._id}).populate("reviewRef").populate("studentRef").exec(function(err, result){
-					
-					if(err){
-						console.log(err);
-					}
-					else{
-						//console.log(result);
-						var comments = [];
+
+			res.render('frontend/reviews', {
+				session: req.session,
+				review: reviewObject,
+				colleges: colleges,
+				title: 'Reviews',
+				jumbotronImage: '/assets/headers/profpage_header.jpg',
+				jumbotronHeader: 'Reviews',
+				jumbotronMessage: 'The review page displays all the reviews made by the students and alumni regarding relevant experiences and interactions with the university professors.',
+				jumbotronLink: '/',
+				jumbotronBtn: 'Back to Homepage'
+			});
+		});
+	} else{
+		res.redirect('/login');
+	}
+});
+
+app.get('/reviews/:id', function(req,res){
+	if (req.session.loggedin){
+		const link = req.params.id;
+
+		reviewModel.findOne({_id: link}).populate('profRef').populate('studentRef').exec(function(err, review){
+			if(review === null){
+				res.render('frontend/error',{
+					session: req.session,
+					error: '404',
+	  				message: "The Page can't be found"
+				});
+			}
+			else{
+				collegeModel.findOne({shortName: review.profRef.college}, function(err,college) {
+					commentModel.find({reviewRef: review._id}).populate("reviewRef").populate("studentRef").exec(function(err, result){
+						var commentObject = [];
 						result.forEach(function(document){
-							comments.push(document.toObject());
+							commentObject.push(document.toObject());
 						});
 						res.render('frontend/revpage', {
+							session: req.session,
+							comment: commentObject,
 							college: college.toObject(),
 							review: review.toObject(),
-							comments: comments,
-							session: req.session,
 							title: "Review on " + review.profRef.profName,
-							jumbotronImage: 'ssets/headers/profpage_header.jpg',
+							jumbotronImage: '/assets/headers/profpage_header.jpg',
 							jumbotronHeader: review.profRef.profName,
 							jumbotronMessage: 'An exemplary Lasallian educator who teach minds, touch hearts, and transform lives by diligently teaching ' + review.profRef.profCourse + ' from the ' + college.longName + '.',
 							jumbotronLink: '/',
 							jumbotronBtn: 'Back to Homepage'
-						});	
-					}
+						});
+					});
 				});
-			});
-		}
-	}); 
+			}
+		});
+	} else{
+		res.redirect('/login');
+	}
 });
 
 app.get('/profile', function(req, res){
 	if (req.session.loggedin){
-		reviewModel.find({studentId: req.session.idNum}).populate('profRef').populate('studentRef').sort({_id:-1}).exec(function(err,result) {
-		 	var reviews = [];
-		 	var comments = [];
+		reviewModel.find({studentId: req.session.idNum}).populate('profRef').populate('studentRef').sort({_id:-1}).exec(function(err,result1) {
+		 	var reviewObject = [];
 
-			result.forEach(function(document){
-				reviews.push(document.toObject());
+			result1.forEach(function(document){
+				reviewObject.push(document.toObject());
 			});
 
-			var current_id = reviews[0].studentRef._id;
-
-			commentModel.find({studentRef: current_id}).populate({path: 'reviewRef', model: 'review', populate: { path: 'profRef', model: 'professor'}}).populate('studentRef').sort({_id:-1}).exec(function(err, docs) {
-
-				//console.log(docs[0].reviewRef.profRef.toObject());
-
+			commentModel.find({studentRef: req.session.studentRef}).populate({path: 'reviewRef', model: 'review', populate: { path: 'profRef', model: 'professor'}}).populate('studentRef').sort({_id:-1}).exec(function(err, result2){
+				var commentObject = [];
 				var comment;
 
-				docs.forEach(function(document){
+				result2.forEach(function(document){
 					comment = document.toObject();
 					comment['profDetails'] = document.reviewRef.profRef.toObject();
-					comments.push(comment);
-				})
-
-				//console.log(comments);
+					commentObject.push(comment);
+				});
 
 				res.render('frontend/profile',{
 					session: req.session,
-					reviews: reviews,
-					comments: comments,
+					reviews: reviewObject,
+					comments: commentObject,
 					title: 'Profile',
 					session: req.session,
 					jumbotronImage: '/assets/headers/user_header.jpg',
@@ -345,7 +374,6 @@ app.get('/profile', function(req, res){
 					jumbotronLink: '/'
 				});
 			});
-
 		});
 	} else{
 		res.redirect('/login');
@@ -375,31 +403,6 @@ app.get('/logout', function(req,res) {
 		layout: 'authenticate'
 	});
 	console.log('You have succesfully logged out.');
-});
-
-//Logical GET Methods
-app.get('/getCourseByCollege', function(req, res) {
-	var selectedCollege = req._parsedUrl.query;
-		
-	professorModel.find({ college: selectedCollege }).distinct('profCourse', function(err, result) {
-		res.send(result);
-	});
-});
-	
-app.get('/getProfByCourse', function(req, res) {
-	var selectedCourse = req._parsedUrl.query;
-	
-	professorModel.find({ profCourse: selectedCourse }).select('profName profNumber _id').exec(function(err, result) {
-		res.send(result);
-	});
-});
-
-app.get('/getProfDetails', function(req, res) {
-	var data = req.query;
-	
-	professorModel.findOne({ profCourse: data.profCourse, profName: data.profName }).select('_id profNumber').exec(function(err, result) {
-		res.send(result);
-	});
 });
 
 app.get('/search', function (req, res) {
@@ -488,15 +491,15 @@ app.get('/cf-admin/colleges', async function(req,res) {
 		if (req.session.admin) {
 			const collegeRes = await collegeModel.find({}).lean().exec(); //.exec() returns a Promise, so you can `await` it.
 			const resultPromises = collegeRes.map(async college => { //arrow function is equivalent to function in this context
-				const professorCount = await professorModel.countDocuments({ college: college.shortName });
-				college.count = professorCount;
-				return college;
-			  });
-			  const collegeObject = await Promise.all(resultPromises);
+		    	const professorCount = await professorModel.countDocuments({ college: college.shortName });
+		    	college.count = professorCount;
+		    	return college;
+		  	});
+		  	const collegeObject = await Promise.all(resultPromises);
 
 			res.render('backend/colleges',{
 				session: req.session,
-				college: collegeObject,
+				data: collegeObject,
 				title: 'College Panel',
 				layout: 'backend',
 				jumbotronImage: '/assets/headers/admin_header.jpg',
@@ -509,7 +512,7 @@ app.get('/cf-admin/colleges', async function(req,res) {
 			res.render('frontend/error',{
 				session: req.session,
 				error: '403',
-				  message: "Forbidden Access"
+	  			message: "Forbidden Access"
 			});
 		}
 	} else{
@@ -534,6 +537,8 @@ app.get('/cf-admin/reviews', async function(req,res) {
 		 		comments.forEach(function(document){
 					commentObject.push(document.toObject());
 				});
+
+				console.log(commentObject);
 
 		  		res.render('backend/reviews',{
 					session: req.session,
@@ -571,16 +576,25 @@ app.get('/cf-admin/professors', async function(req,res) {
 		  	});
 		  	const professorObject = await Promise.all(resultPromises);
 
-			res.render('backend/professors',{
-				session: req.session,
-				professor: professorObject,
-				title: 'Professor Panel',
-				layout: 'backend',
-				jumbotronImage: '/assets/headers/admin_header.jpg',
-				jumbotronHeader: 'Professor Panel',
-				jumbotronMessage: 'Welcome to the Professor Panel. This page is not only for adding and deleting a professor but it also has the capability to edit the professor’s information and the course that they are currently teaching.',
-				jumbotronLink: '/cf-admin',
-				jumbotronBtn: 'Back to Dashboard'
+		  	collegeModel.find({}).exec(function(err, col){
+				var colleges = [];
+
+				col.forEach(function(document){
+					colleges.push(document.toObject());
+				});
+
+				res.render('backend/professors',{
+					colleges: colleges,
+					session: req.session,
+					professor: professorObject,
+					title: 'Professor Panel',
+					layout: 'backend',
+					jumbotronImage: '/assets/headers/admin_header.jpg',
+					jumbotronHeader: 'Professor Panel',
+					jumbotronMessage: 'Welcome to the Professor Panel. This page is not only for adding and deleting a professor but it also has the capability to edit the professor’s information and the course that they are currently teaching.',
+					jumbotronLink: '/cf-admin',
+					jumbotronBtn: 'Back to Dashboard'
+				});
 			});
 		} else{
 			res.render('frontend/error',{
@@ -628,18 +642,66 @@ app.get('/cf-admin/users', async function(req,res) {
 	}
 });
 
+app.get('/cf-profile', function(req, res){
+	if (req.session.loggedin){
+		if (req.session.admin){
+			reviewModel.find({studentId: req.session.idNum}).populate('profRef').populate('studentRef').sort({_id:-1}).exec(function(err,result1) {
+			 	var reviewObject = [];
+
+				result1.forEach(function(document){
+					reviewObject.push(document.toObject());
+				});
+
+				commentModel.find({studentRef: req.session.studentRef}).populate({path: 'reviewRef', model: 'review', populate: { path: 'profRef', model: 'professor'}}).populate('studentRef').sort({_id:-1}).exec(function(err, result2){
+					var commentObject = [];
+					var comment;
+
+					result2.forEach(function(document){
+						comment = document.toObject();
+						comment['profDetails'] = document.reviewRef.profRef.toObject();
+						commentObject.push(comment);
+					});
+
+					res.render('frontend/profile',{
+						layout: 'backend',
+						session: req.session,
+						reviews: reviewObject,
+						comments: commentObject,
+						title: 'Profile',
+						session: req.session,
+						jumbotronImage: '/assets/headers/user_header.jpg',
+						jumbotronHeader: 'Hello ' + req.session.nickname + ',',
+						jumbotronMessage: "This page shows your most recent contribution to the DLSU Community Forum. You may also change your password through the form below.",
+						jumbotronBtn: 'Back to Homepage',
+						jumbotronLink: '/'
+					});
+				});
+			});
+		} else{
+			res.render('frontend/error',{
+				session: req.session,
+				error: '403',
+	  			message: "Forbidden Access"
+			});
+		}
+	} else{
+		res.redirect('/login');
+	}
+});
+
+
 //Logical GET Methods
 app.get('/getCourseByCollege', function(req, res) {
 	var selectedCollege = req._parsedUrl.query;
-		
+
 	professorModel.find({ college: selectedCollege }).distinct('profCourse', function(err, result) {
 		res.send(result);
 	});
 });
-	
+
 app.get('/getProfByCourse', function(req, res) {
 	var selectedCourse = req._parsedUrl.query;
-	
+
 	professorModel.find({ profCourse: selectedCourse }).select('profName profNumber _id').exec(function(err, result) {
 		res.send(result);
 	});
@@ -647,13 +709,122 @@ app.get('/getProfByCourse', function(req, res) {
 
 app.get('/getProfDetails', function(req, res) {
 	var data = req.query;
-	
+
 	professorModel.findOne({ profCourse: data.profCourse, profName: data.profName }).select('_id profNumber').exec(function(err, result) {
 		res.send(result);
 	});
 });
 
+app.get('/getSecQuestion', function(req, res){
+	var id = req._parsedOriginalUrl.query;
+
+	fallbackModel.findOne({studentId: id}, function(err, result){
+		var data;
+		if (err)
+		{
+			console.log(err.errors);
+		}
+		else {
+			//console.log(result);
+
+			if(result === null){
+			   data = "No User Found!";
+			}
+			else{
+				data = {
+					question: result.question,
+					answer: result.answer
+				}
+			}
+
+			res.send(data);
+		}
+	});
+});
+
+app.get('/verifySecAnswer', function(req, res){
+	var id = req.query.id;
+	var answer = req.query.answer;
+
+	//console.log(id + " "  + answer + " " + req.query);
+
+	fallbackModel.findOne({studentId: id}, function(err, result){
+		var data;
+		if (err)
+		{
+			console.log(err.errors);
+		}
+		else {
+			//console.log(result);
+
+			if(result === null){
+			  	data = "Answers mismatch!";
+			}
+			else{
+				if( bcrypt.compareSync(answer, result.answer) ){
+					data = true;
+				}
+				else{
+			  		data = "Answers mismatch!";
+				}
+			}
+			res.send(data);
+		}
+	});
+
+});
+
 //POST Methods
+app.post('/setNewPassword', function(req, res) {
+
+	var id = req.body.id;
+	var password = req.body.password;
+	console.log(id + " " + password);
+
+	userModel.findOne({studentId: id}, function(err, doc){
+		var result;
+		if(err){
+			console.log(err.errors);
+			result = { success: false, message: "Password was not successfully changed!" }
+			res.send(result);
+		} else{
+			doc.password = bcrypt.hashSync(password, 10);
+			doc.save();
+			console.log("Successfully changed password!");
+			console.log(doc);
+			result = { success: true, message: "Password changed!" }
+			res.send(result);
+		}
+	});
+});
+
+app.post('/addSecurity', function (req, res){
+	var newSecurity = new securityModel ({
+		studentId: req.body.idNum,
+		securityQ1: req.body.securityQ1,
+        securityQ2: req.body.securityQ2,
+        securityQ3: req.body.securityQ3
+	});
+	securityModel.findOne({studentId: newSecurity.studentId}, function(err){
+		if (err) {
+			console.log(err.errors);
+			res.send(result);
+		}
+		else {
+			newSecurity.save(function(err, data) {
+				if (err){
+					console.log(err.errors);
+					res.send(result);
+				}
+				else {
+					console.log('Security added Successfully');
+					console.log(data);
+					res.send(result);
+				}
+			});
+		}
+	});
+});
 app.post('/auth', function(req,res) {
 	var user = {
     	studentId: req.body.studentId,
@@ -668,11 +839,7 @@ app.post('/auth', function(req,res) {
 		}
 		if (userQuery){
 			console.log('User found!');
-
-			//console.log("password:" + user.password);
-			//console.log("hash: " + userQuery);
-
-			if(bcrypt.compareSync(user.password, userQuery.password)) {
+			if (bcrypt.compareSync(user.password, userQuery.password)) {
 				req.session.nickname = userQuery.studentName.substr(0, userQuery.studentName.indexOf(' '));
 				req.session.fullname = userQuery.studentName;
 				req.session.studentRef = userQuery._id;
@@ -685,7 +852,7 @@ app.post('/auth', function(req,res) {
 			} else {
 				result = { status: 0, success: false, message: "Password incorrect! Please try again." }
 				res.send(result);
-			} 
+			}
 		} else {
 			result = { status: -1, success: false, message: "Username not found! Please try again." }
 			res.send(result);
@@ -698,7 +865,8 @@ app.post('/addUser', function(req, res) {
   		studentName: req.body.studentName,
     	studentId: req.body.studentId,
     	password: req.body.password,
-    	isAdmin: req.body.isAdmin
+    	isAdmin: req.body.isAdmin,
+    	isBanned: false
 	});
 
 	userModel.findOne({studentId: newUser.studentId}, function(err1, userQuery){
@@ -712,6 +880,7 @@ app.post('/addUser', function(req, res) {
 			result = { success: false, message: "User already exists! Please sign in!" }
 	    	res.send(result);
 		} else{
+			newUser.password = bcrypt.hashSync(newUser.password, 10);
 			newUser.save(function(err2, user) {
 				if (err2) {
 					console.log(err2.errors);
@@ -724,6 +893,51 @@ app.post('/addUser', function(req, res) {
 	    			res.send(result);
 				}
 			});
+		}
+	});
+});
+
+app.post('/addFallback', function (req, res){
+	var hash = bcrypt.hashSync(req.body.securityA,10);
+	var newSecurity = new fallbackModel ({
+		studentId: req.body.idNum,
+		question: req.body.securityQ,
+        answer: hash
+	});
+	newSecurity.save(function(err, data) {
+		var result;
+		if (err){
+			console.log(err.errors);
+			result = {success: false};
+			res.send(result);
+		}
+		else {
+			console.log('Security added successfully');
+			result = {success: true};
+			console.log(data);
+			res.send(result);
+		}
+	});
+});
+
+app.post('/addProfessor', function(req, res) {
+	var newProfessor = new professorModel({
+    	profName: req.body.profName,
+    	gender: req.body.gender,
+    	college: req.body.college,
+    	profCourse: req.body.profCourse
+	});
+
+	newProfessor.save(function(err, user) {
+		if (err) {
+			console.log(err.errors);
+		    result = { success: false, message: "Professor was not added!" }
+		    res.send(result);
+		} else {
+			console.log("Successfully added professor!");
+			console.log(user);
+			result = { success: true, message: "Professor has succesfully been added!" }
+			res.send(result);
 		}
 	});
 });
@@ -750,7 +964,7 @@ app.post('/addReview', function(req, res) {
 		    	result = { success: false, message: "Error in adding review!" }
 		    	res.send(result);
 		    } else {
-		    	//console.log(review);
+		    	console.log(review);
 		    	result = { success: true, message: "Successfully added review!" }
 		    	res.send(result);
 		    }
@@ -759,124 +973,218 @@ app.post('/addReview', function(req, res) {
 });
 
 app.post('/addComment', function(req, res) {
+	if (req.session.banned){
+		var result;
+		result = { success: false, message: "Your account is BANNED!" }
+		res.send(result);
+	} else{
+		var newComment = new commentModel({
+			reviewRef: req.body.reviewRef,
+		 	studentRef: req.body.studentRef,
+		  	commentContent: req.body.commentContent,
+		});
 
-	var newComment = new commentModel({
-		reviewRef: req.body.reviewRef,
-	 	 studentRef: req.body.studentRef,
-	  	commentContent: req.body.commentContent,
-	});
-  
-	newComment.save(function(err, comment) {
-	  var result;
-  
-	  if (err) {
-		console.log(err.errors);
-  
-		result = { success: false, message: "Comment was not posted!" }
-		res.send(result);
-	  } else {
-		console.log("Successfully added comment!");
-		//console.log(comment);
-  
-		result = { success: true, message: "Comment posted!" }
-  
-		res.send(result);
-	  }
-  
-	});
-  });
+		newComment.save(function(err, comment) {
+			var result;
+			if (err) {
+				console.log(err.errors);
+				result = { success: false, message: "Comment was not posted!" }
+				res.send(result);
+		  	} else {
+				console.log(comment);
+				result = { success: true, message: "Comment posted!" }
+				res.send(result);
+		  	}
+		});
+	}
+});
 
 app.post('/savePost', function(req, res) {
-
-	var id = req.body.id;
-	var content = req.body.content;
-
-	reviewModel.findOne({_id: id}, function(err, doc){
+	if (req.session.banned){
 		var result;
+		result = { success: false, message: "Your account is BANNED!" }
+		res.send(result);
+	} else{
+		var id = req.body.reviewRef;
+		var content = req.body.commentContent;
 
-		if(err){
-			console.log(err.errors);
-  
-			result = { success: false, message: "Review was not successfully saved!" }
-			res.send(result);
-
-		}
-		else{
-			doc.reviewContent = content;
-			doc.save();
-
-			console.log("Successfully saved review!");
-			//console.log(doc);
-  
-			result = { success: true, message: "Review saved!" }
-			res.send(result);
-		}
-	});
-  });
+		reviewModel.findOne({_id: id}, function(err, doc){
+			var result;
+			if(err){
+				console.log(err.errors);
+				result = { success: false, message: "Review was not successfully saved!" }
+				res.send(result);
+			} else{
+				doc.reviewContent = content;
+				doc.save();
+				console.log("Successfully saved review!");
+				console.log(doc);
+				result = { success: true, message: "Review saved!" }
+				res.send(result);
+			}
+		});
+	}
+});
 
 app.post('/saveComment', function(req, res) {
-
-	var id = req.body.id;
-	var content = req.body.content;
-
-	commentModel.findOne({_id: id}, function(err, doc){
+	if (req.session.banned){
 		var result;
+		result = { success: false, message: "Your account is BANNED!" }
+		res.send(result);
+	} else{
+		var id = req.body.id;
+		var content = req.body.content;
 
-		if(err){
-			console.log(err.errors);
-  
-			result = { success: false, message: "Comment was not successfully saved!" }
+		commentModel.findOne({_id: id}, function(err, doc){
+			var result;
+			if(err){
+				console.log(err.errors)
+				result = { success: false, message: "Comment was not successfully saved!" }
+				res.send(result);
+			}
+			else{
+				doc.commentContent = content;
+				doc.save();
+				console.log("Successfully saved comment!");
+				console.log(doc);
+				result = { success: true, message: "Comment saved!" }
+				res.send(result);
+			}
+		});
+	}
+});
+
+
+app.post('/editProfessor', function (req,res) {
+	var id = req.body.id;
+	var name = req.body.name;
+	var course = req.body.course;
+	var college = req.body.college;
+	var gender = req.body.gender;
+	//console.log(name);
+
+	professorModel.findOne({_id: id}, function(err, data){
+		var result;
+		if (err){
+			console.log(err.errors)
+			result = { success: false, message: "Professor was not successfully saved!" }
 			res.send(result);
 		}
 		else{
-			doc.commentContent = content;
-			doc.save();
-
-			console.log("Successfully saved comment!");
-			//console.log(doc);
-  
-			result = { success: true, message: "Comment saved!" }
+			data.profName = name;
+			data.profCourse = course;
+			data.college = college;
+			data.gender = gender;
+			data.save();
+			console.log(data);
+			result = { success: true, message: "Professor saved!" }
 			res.send(result);
 		}
 	});
-  });
-
-app.post('/deletePost', function(req, res) {
-
+});
+/*
+app.post('/editCollege', function(req, res) {
 	var id = req.body.id;
+	var short = req.body.short;
+	var long = req.body.long;
 
-	commentModel.deleteMany({ reviewRef: id}, function (err) {
-  		if(err){
-  			console.log(err);
-  		}
-  		else{
-  			reviewModel.deleteOne({ _id: id }, function (err) {
-			 
+	collegeModel.findOne({_id: id}, function (err, data) {
+		var result;
+		if (err){
+			console.log(err.errors)
+			result = { success: false, message: "College was not successfully saved!" }
+			res.send(result);
+		}
+		else{
+			data.longName = long;
+			data.shortName = short;
+			data.save();
+			console.log(data);
+			result = { success: true, message: "College saved!" }
+			res.send(result);
+		}
+	});
+});
+*/
+app.post('/banUser', function (req,res) {
+	var id = req.body.id;
+	console.log(id);
+	userModel.findOne({_id: id}, function(err, data) {
+		var result;
+			if(err){
+				console.log(err.errors)
+				result = { success: false, message: "User was not successfully banned!" }
+				res.send(result);
+			}
+			else{
+				data.isBanned = true;
+				data.save();
+				console.log("User successfully banned!");
+				console.log(data);
+				result = { success: true}
+				res.send(result);
+			}
+	});
+});
+
+app.post('/deleteProf', function(req, res) {
+	var id = req.body.id;
+	reviewModel.deleteMany({ profRef: id}, function (err){
+		if(err){
+			console.log(err.errors);
+			result = {
+				success: false,
+				message: "Professor were not successfully deleted!"
+			}
+			res.send(result);
+		} else{
+			professorModel.deleteOne({ _id: id }, function (err) {
 				if(err){
 					console.log(err.errors);
-	  
+					result = { success: false, message: "Professor was not successfully deleted!" }
+					res.send(result);
+				} else {
+					console.log("Successfully deleted professor!");
+					result = { success: true, message: "Professor deleted!" }
+					res.send(result);
+				}
+			});
+	  	}
+	})
+ });
+
+
+app.post('/deletePost', function(req, res) {
+	var id = req.body.id;
+	commentModel.deleteMany({ reviewRef: id}, function (err) {
+		if(err){
+			console.log(err.errors);
+			result = {
+				success: false,
+				message: "Review and leading comments were not successfully deleted!"
+			}
+			res.send(result);
+		} else{
+			reviewModel.deleteOne({ _id: id }, function (err) {
+				if(err){
+					console.log(err.errors);
 					result = { success: false, message: "Review was not successfully deleted!" }
 					res.send(result);
 				} else {
 					console.log("Successfully deleted review!");
-			
 					result = { success: true, message: "Review deleted!" }
 					res.send(result);
 				}
 			});
-  		}
+	  	}
 	});
-  });
+ });
 
 app.post('/deleteComment', function (req, res) {
-
 	var id = req.body.id;
-
 	commentModel.deleteOne({ _id: id }, function (err) {
-
 		if (err) {
 			console.log(err.errors);
-
 			result = {
 				success: false,
 				message: "Comment was not successfully deleted!"
@@ -884,10 +1192,30 @@ app.post('/deleteComment', function (req, res) {
 			res.send(result);
 		} else {
 			console.log("Successfully deleted comment!");
-
 			result = {
 				success: true,
 				message: "Comment deleted!"
+			}
+			res.send(result);
+		}
+	});
+});
+
+app.post('/deleteUser', function (req, res) {
+	var id = req.body.id;
+	userModel.deleteOne({ _id: id }, function (err) {
+		if (err) {
+			console.log(err.errors);
+			result = {
+				success: false,
+				message: "User was not successfully deleted!"
+			}
+			res.send(result);
+		} else {
+			console.log("Successfully deleted user!");
+			result = {
+				success: true,
+				message: "User deleted!"
 			}
 			res.send(result);
 		}
@@ -950,7 +1278,7 @@ app.post('/addCollege', function (req, res) {
 					});
 
 				newCollege.save(function(err, comment) {
-							
+
 				});
 			}
 			res.redirect('/cf-admin/colleges');
@@ -958,6 +1286,38 @@ app.post('/addCollege', function (req, res) {
 	}
 });
 
+app.post('/changePassword', function (req, res) {
+	var studentRef = req.session.studentRef;
+	var credentials = {
+    	currentPassword: req.body.oldPassword,
+    	newPassword: req.body.newPassword,
+	};
+
+	userModel.findOne({_id: studentRef}, function(err, userQuery){
+		console.log(userQuery);
+		var result;
+		if(err){
+			console.log(err.errors)
+			result = { success: false, message: "Password was not successfully changed!" }
+			res.send(result);
+		}
+		else{
+			if(bcrypt.compareSync(credentials.currentPassword, userQuery.password)){
+				let hash = bcrypt.hashSync(credentials.newPassword,10);
+  				credentials.newPassword = hash;
+				userQuery.password = credentials.newPassword;
+				userQuery.save();
+				console.log("Successfully changed password!");
+				console.log(userQuery);
+				result = { success: true, message: "Password changed!" }
+				res.send(result);
+			} else{
+				result = { success: false, message: "Current password incorrect! Please try again." }
+				res.send(result);
+			}
+		}
+	})
+});
 
 //HTTP Status Routes
 app.use(function (req, res, next) {

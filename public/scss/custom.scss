@@ -83,3 +83,24 @@ $body-bg: #ededed;
   border-radius: 0 4px 4px 4px;
   background: #fff;
 }
+
+.card-flow {
+  max-height: 200px;
+  min-height: 70px;
+  overflow-y: auto
+}
+
+:target {
+    -webkit-animation: target-fade 3s 1;
+    -moz-animation: target-fade 3s 1;
+}
+
+@-webkit-keyframes target-fade {
+    0% { background-color: rgba(0, 112, 60, 0.40) }
+    100% { background-color: rgba(0,0,0,0); }
+}
+
+@-moz-keyframes target-fade {
+    0% { background-color: rgba(0, 112, 60, 0.40) }
+    100% { background-color: rgba(0,0,0,0); }
+}

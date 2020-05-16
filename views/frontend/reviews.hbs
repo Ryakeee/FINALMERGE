@@ -1,0 +1,80 @@
+{{>jumbotron}}
+
+<script>
+  window.studentRef = "{{session.studentRef}}";
+  window.studentId = parseInt("{{session.idNum}}");
+</script>
+
+<div class="row mt-sm-4 mt-md-0">
+	<div class="col-sm-12 col-md-8">
+    	<h3>All Reviews</h3>
+		<table id="myTable" class="table table-hover table-light mb-0">
+			<thead class="thead-green">
+			   	<tr class="text-center">
+			  		<th scope="col">Student ID</th>
+			   		<th scope="col">Reviewer</th>
+				   	<th scope="col">Professor</th>
+			   		<th scope="col">No. of Comments</th>
+				   	<th scope="col">Action</th>
+			   	</tr>
+			</thead>
+			<tbody>
+			{{#each review}}
+				<tr class="text-center">
+				    <td>{{this.studentId}}</td>
+				    <td>{{this.studentRef.studentName}}</td>
+				    <td>{{this.profRef.profName}}</td>
+				    <td>{{this.count}}</td>
+				    <td><a class="btn btn-primary btn-sm text-white" href="/reviews/{{this._id}}">Go to Review</a></td>
+				</tr>
+			{{/each}}
+			</tbody>
+		</table>
+		<nav aria-label="Page navigation example">
+	        <ul id="paging" class="pagination justify-content-center">
+    	    </ul>
+        </nav>
+	</div>
+
+	<div class="col-sm-12 col-md-4">
+	    <h3 class="text-center" id="quickReview">Quick Review</h3>
+	    <div class="card mb-4">
+	    	<div class="card-body">
+	        	<div class="text-center">
+	          		<img src="/assets/logo_box_green.jpg" width="100" class="rounded-10 d-inline-block align-top mt-2 mb-3" alt="DLSU Community Forum">
+	        	</div>
+	        	<form>
+		        	<div class="form-group row">
+		            	<label for="quickCollege" class="col-sm-4 col-form-label">College</label>
+		            	<select class="custom-select col-sm-7" id="quickCollege" name="quickCollege">
+		              		<option hidden disabled selected value>Choose...</option>
+		              	{{#each colleges}}
+		              	<option>{{this.shortName}}</option>
+		              	{{/each}}
+		            	</select>
+		          	</div>
+		          	<div class="form-group row">
+		            	<label for="quickCourse" class="col-sm-4 col-form-label">Course</label>
+		            	<select class="custom-select col-sm-7" id="quickCourse" name="quickCourse">
+		              		<option hidden disabled selected value>Choose...</option>
+		            	</select>
+		          	</div>
+		          	<div class="form-group row">
+		            	<label for="quickProf" class="col-sm-4 col-form-label">Professor</label>
+		            	<select class="custom-select col-sm-7" id="quickProf" name="quickProf">
+		             		<option hidden disabled selected value>Choose...</option>
+		            	</select>
+		          	</div>
+		          	<div class="form-group row">
+		            	<label for="quickRev" class="col-sm-4 col-form-label">Review</label>
+		            	<textarea class="form-control col-sm-7" id="revContent" name="revContent" rows="3"></textarea>
+		          	</div>
+		          	<div class="text-center">
+		            	<button type="button" class="btn btn-primary mt-0 mb-2" id="postReview" name="postReview">Post Review</button>
+		          	</div>
+		       </form>
+	        <p id="msg" class="text-danger mb-0 mt-2 text-center"></p>
+	    	</div>
+	    </div>
+  	</div>
+</div>

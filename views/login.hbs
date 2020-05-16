@@ -1,3 +1,130 @@
+<!-- Modals -->
+<!--  Security Ques Modal -->
+<div id="securityModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h3 class="modal-title w-100 font-weight-bold">Security Questions</h3>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h5 class="text-center">Answer the security question to complete the registration</h5>
+        <div class="form-group">
+          <select id="chooseQuestion" class="form-control" required> 
+          <option hidden disabled selected value>Choose...</option>
+          <option>What were the last four digits of your telephone number?</option>
+          <option>What is the name of your first pet?</option>
+          <option>What is your mother's maiden name?</option>
+        </select>
+        <label>Choose one security question</label>
+        </div>
+        <div class="form-group">
+          <textarea rows ="1" id="securityAnswer" class="form-control" required></textarea>
+          <label data-error="wrong" data-success="right">Answer</label>
+        </div>
+        <p id="msg" class="text-danger text-center"></p>
+      </div>
+      <div class="modal-footer">
+        <button id="submitSecBtn" type="button" class="btn btn-primary" data-dismiss="modal">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Forgot Password Modal -->
+    <!-- Modal content-->
+<div class="modal fade" id="forgotModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h3 class="modal-title w-100 font-weight-bold">Forgot Password</h3>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          			<span aria-hidden="true">&times;</span>
+        		</button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-4">
+          <div class="text-center"> 
+            <h5 class="font-weight-bold">Fill out the Following Information</h5>
+          </div>
+        </div>
+        <input id="idNum" name = "idNum" class="form-control validate" type ="number" required>
+        <label class = "text-center" data-error="wrong" data-success="right">ID Number</label>
+      </div>
+      <div class="modal-footer d-flex justify-content-center">
+        <button id="forgotSubmitBtn" class="btn btn-primary btn-sm text-white">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Answer Verification -->
+<div id="verifyModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h3 class="modal-title w-100 font-weight-bold">Verification</h3>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          			<span aria-hidden="true">&times;</span>
+        		</button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-4">
+			     	<label>Security Question</label>
+			      <input type="text" id="secQuestion" class="form-control" readonly>
+			  </div>
+        <div class="form-group">
+          <label data-error="wrong" data-success="right">Answer</label>
+          <textarea rows ="1" id="securityAns" class="form-control" required></textarea>
+        </div>
+        <p id="vmsg"></p>
+      </div>
+      <div class="modal-footer">
+        <button id="submitVerifBtn" type="button" class="btn btn-primary" data-dismiss="modal">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Passwords Match Modal -->
+<div class="modal fade" id="newPasswordModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+   aria-hidden="true">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header text-center">
+            <h3 class="modal-title w-100 font-weight-bold">New Password</h3>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          			<span aria-hidden="true">&times;</span>
+        		</button>
+         </div>
+         <div class="modal-body mx-3">
+            <div class="md-form mb-4">
+               <div class="text-center">
+                  <h5 class="font-weight-bold">Enter new password</h5>
+               </div>
+            </div>
+            <input id="pass1" name = "pass1" class="form-control validate" type ="password" required>
+            <label class = "text-center" data-error="wrong" data-success="right">Password</label>
+            <input id="pass2" name = "pass2" class="form-control validate" type ="password" required>
+         <label class = "text-center" data-error="wrong" data-success="right">Re-type password</label>
+         <p id="nmsg"></p>
+         </div>
+         <div class="modal-footer d-flex justify-content-center">
+            <button id="newPasswordBtn" class="btn btn-primary btn-sm text-white">Submit</button>
+         </div>
+      </div>
+   </div>
+</div>
+
+
+<!-- End of Modals -->
+
+
 <img src="/assets/logo_box_green.jpg" class="form-logo" draggable="false" alt="DLSU Community Forum">
 <div class="authContainer" id="authContainer">
     <div class="form-container sign-up-container">
@@ -18,7 +145,7 @@
             <span>Use your registered account</span>
             <input type="text" id="siId" name="siId" pattern="[0-9]{8}" title="Eight digit student ID" placeholder="ID Number"/>
             <input type="password" id="siPass" name="siPass" placeholder="Password" />
-            <a href="#">Forgot your password?</a>
+            <a data-toggle="modal" data-target='#forgotModal'>Forgot your password?</a>
             <button id="signInBtn" class="mt-1 mb-2" type="button">Sign In</button>
             <p id="msg2" class="text-danger text-center"></p>
         </form>
